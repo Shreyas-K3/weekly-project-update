@@ -7,7 +7,7 @@ import app.db as db
 
 # Set a hardcoded Admin Access Code. 
 # IN PRODUCTION: Use st.secrets or environment variable for this value!
-ADMIN_ACCESS_CODE = "SECRET_ADMIN_123"
+ADMIN_ACCESS_CODE = "k3masteraccess"
 
 st.set_page_config(
     page_title="Weekly Project Update",
