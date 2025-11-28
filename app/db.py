@@ -1,8 +1,24 @@
 import os
+import json
 from datetime import datetime
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy import create_engine, Column, Integer, String, Text, LargeBinary
+from sqlalchemy.types import TypeDecorator
+
+# Custom type for handling JSON (for image list)
+class JSONEncodedDict(TypeDecorator):
+    impl = Text
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            return json.dumps(value)
+        return None
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            return json.loads(value)
+        return None
 
 # Setup DB Path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,7 +31,6 @@ os.makedirs(DATA_DIR, exist_ok=True)
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 Base = declarative_base()
-# Use connect_args for Streamlit Cloud compatibility
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}) 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -32,10 +47,15 @@ class Project(Base):
     days_spent = Column(Integer, default=0)
     model_review_link = Column(String, nullable=True)
     rfi_sheet_link = Column(String, nullable=True)
-    alert_note = Column(String, nullable=True)
+    alert_note = Column(Text, nullable=True) # Text data type, consistent with current_progress
     current_progress = Column(Text, nullable=True)
     next_week_plan = Column(Text, nullable=True)
-    project_logo_url = Column(String, nullable=True) # New Field for project image
+    
+    # New Fields for Logos and Carousel
+    client_logo_base64 = Column(Text, nullable=True) # Base64 string for client logo
+    kshitij_logo_base64 = Column(Text, nullable=True) # Base64 string for kshitij logo
+    carousel_images_json = Column(JSONEncodedDict, default=lambda: []) # List of image Base64 strings
+    
     updated_at = Column(String, default=datetime.utcnow().isoformat)
 
 class Comment(Base):
@@ -61,7 +81,14 @@ def get_db():
 def get_project_by_code(project_code: str):
     session = SessionLocal()
     try:
-        return session.query(Project).filter(Project.project_code == project_code).first()
+        # Use session.execute and mapping for better column handling if schema evolves
+        project_data = session.query(Project).filter(Project.project_code == project_code).first()
+        if project_data:
+             # Convert to dict to handle JSON field correctly
+            data = project_data.__dict__.copy()
+            data.pop('_sa_instance_state', None)
+            return data
+        return None
     finally:
         session.close()
 
@@ -76,11 +103,8 @@ def list_project_codes():
 def upsert_project(data: dict):
     session = SessionLocal()
     try:
-        # Check if project exists by its *new* project code (handle case where code itself was changed)
-        project = session.query(Project).filter(Project.project_code == data['project_code']).first()
-        
-        # If project exists, check if we need to update a different row (only possible if key was changed)
-        # However, since we are identifying the project via the code *in the form*, we only use the code.
+        project_code = data['project_code']
+        project = session.query(Project).filter(Project.project_code == project_code).first()
         
         if not project:
             # New Project
