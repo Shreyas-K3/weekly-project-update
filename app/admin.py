@@ -127,24 +127,7 @@ def app():
             st.success(f"Added {len(uploaded_carousel_files)} images.")
 
         # Display current carousel images and allow removal
-        if st.session_state['current_carousel_images']:
-            st.markdown("##### Current Carousel Images:")
-            # Use columns for a grid-like view
-            cols = st.columns(4)
-            # Create a temporary copy to iterate over
-            carousel_copy = st.session_state['current_carousel_images'][:] 
-            
-            for i, img_data in enumerate(carousel_copy):
-                with cols[i % 4]:
-                    st.image(img_data, use_column_width=True)
-                    # Button to remove the image
-                    if st.button(f"Remove {i+1}", key=f"remove_img_{i}"):
-                        try:
-                            # Remove the image from the actual session state list
-                            st.session_state['current_carousel_images'].pop(i)
-                            st.rerun() # Rerun to refresh the list display
-                        except IndexError:
-                            pass # Should not happen with correct indexing
+        # This section was MOVED OUTSIDE the form to fix the StreamlitAPIException.
         
         st.markdown("---")
         st.subheader("Narrative Content")
@@ -180,7 +163,30 @@ def app():
                 st.success(f"Project '{p_name}' saved successfully with code: {p_code}!")
                 time.sleep(1)
                 st.rerun()
+    
+    # --- Carousel Removal Section (Moved Outside the Form) ---
+    # Display current carousel images and allow removal
+    if st.session_state.get('current_carousel_images'):
+        st.markdown("##### Current Carousel Images:")
+        st.caption("Click 'Remove' to delete an image immediately. Don't forget to click 'Submit/Update Project Data' above to save the updated image list to the database.")
+        # Use columns for a grid-like view
+        cols = st.columns(4)
+        # Create a temporary copy to iterate over
+        carousel_copy = st.session_state['current_carousel_images'][:] 
+        
+        for i, img_data in enumerate(carousel_copy):
+            with cols[i % 4]:
+                st.image(img_data, use_column_width=True)
+                # Button to remove the image (NOW OUTSIDE THE FORM)
+                if st.button(f"Remove {i+1}", key=f"remove_img_{i}"):
+                    try:
+                        # Remove the image from the actual session state list
+                        st.session_state['current_carousel_images'].pop(i)
+                        st.rerun() # Rerun to refresh the list display
+                    except IndexError:
+                        pass # Should not happen with correct indexing
 
+    st.markdown("---")
     # --- Live Comments View ---
     if selected_code:
         st.markdown("---")
