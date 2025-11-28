@@ -38,7 +38,7 @@ h1, h2, h3, h4 {
     border: 1px solid #333333;
 }
 
-/* Metric Cards (Prominent Cards) */
+/* Metric Cards (Pending RFI / Days Spent) */
 div[data-testid="stMetric"] > div {
     background-color: #1a1a1a;
     padding: 20px;
@@ -46,6 +46,7 @@ div[data-testid="stMetric"] > div {
     border: 1px solid #333;
     box-shadow: 0 4px 6px rgba(0,0,0,0.5);
     transition: all 0.3s ease;
+    height: 100%; /* Important for equal height alignment */
 }
 div[data-testid="stMetric"]:hover > div {
     box-shadow: 0 6px 15px rgba(255, 0, 0, 0.2);
@@ -62,18 +63,18 @@ div[data-testid="stMetricValue"] {
     font-weight: bold;
 }
 
-/* --- Progress and Days Spent Meters --- */
+/* --- Circular Gauge (Overall Progress) --- */
 
 .meter-card {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 10px;
+    min-height: 250px; /* Ensure space for the large gauge */
 }
 
 .circular-meter {
-    /* Variables passed from Python: --p (percentage), --c (color) */
-    --size: 200px;
+    /* Variables passed from Python: --p (percentage), --c (color), --size (dynamic) */
     --border-width: 15px;
     width: var(--size);
     height: var(--size);
@@ -90,6 +91,11 @@ div[data-testid="stMetricValue"] {
     box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
 }
 
+/* Specific style for the large progress gauge */
+.circular-meter.large-gauge {
+    --size: 250px; /* Bigger size */
+}
+
 .circular-meter .meter-value {
     font-size: 3.5em; /* Large value */
     font-weight: bold;
@@ -104,53 +110,77 @@ div[data-testid="stMetricValue"] {
     margin-bottom: 5px;
 }
 
-/* --- Brand Buttons --- */
-.stButton > button {
-    background-color: #FF0000 !important;
-    color: #FFFFFF !important;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    padding: 10px 20px; /* Base padding */
-    font-size: 1.1em;
-    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 0 #CC0000;
+/* --- Transparent Circular Buttons (Model & RFI) --- */
+.transparent-circle-link {
+    display: flex;
+    justify-content: center; /* Center the buttons within their columns */
 }
 
-.stButton > button:hover {
-    background-color: #CC0000 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 #990000;
-}
-
-/* Large Action Buttons (Link Buttons) */
-.stLinkButton > a {
-    background-color: #1a1a1a !important; /* Dark background */
+.transparent-circle-link > a {
+    background-color: transparent !important;
     color: #FF0000 !important; /* Red text/icon */
     border: 2px solid #FF0000;
-    border-radius: 12px;
-    padding: 15px 30px;
-    font-size: 1.4em; /* Bigger font */
+    border-radius: 50%; /* Circular shape */
+    padding: 20px;
+    font-size: 1.1em;
     text-align: center;
-    display: block; /* Make link fill container */
+    width: 150px; /* Fixed size for circle */
+    height: 150px; /* Fixed size for circle */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0; /* Removed auto margin */
     transition: all 0.3s ease;
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
 }
 
-.stLinkButton > a:hover {
-    background-color: #FF0000 !important;
-    color: #FFFFFF !important;
-    transform: scale(1.02);
+.transparent-circle-link > a:hover {
+    background-color: #FF000020 !important; /* Light red hover */
+    transform: scale(1.05);
     box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
 }
 
-/* Alert Note */
+.transparent-circle-link .icon {
+    font-size: 2em;
+    margin-bottom: 5px;
+}
+
+/* Alert Note (Text only, no red box) */
 .alert-box {
-    background-color: #220000;
-    border-left: 5px solid #FF0000;
-    padding: 15px;
+    padding: 15px 0;
     margin-bottom: 20px;
-    border-radius: 5px;
     font-weight: bold;
-    color: #FF9999;
+    color: #FFFFFF;
+}
+
+/* --- Image Carousel --- */
+.image-carousel {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-radius: 10px;
+}
+
+.carousel-image-wrapper {
+    flex: 0 0 auto; /* Prevent stretching/shrinking */
+    width: 250px; /* Fixed width for each image card */
+    height: 150px; /* Fixed height for image card */
+    overflow: hidden;
+    border-radius: 8px;
+    border: 2px solid #333;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+}
+
+.carousel-image-wrapper:hover {
+    transform: translateY(-3px);
+    border-color: #FF0000;
+}
+
+.carousel-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
