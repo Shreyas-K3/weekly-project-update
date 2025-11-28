@@ -15,7 +15,8 @@ os.makedirs(DATA_DIR, exist_ok=True)
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 Base = declarative_base()
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Use connect_args for Streamlit Cloud compatibility
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}) 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # --- Models ---
@@ -34,6 +35,7 @@ class Project(Base):
     alert_note = Column(String, nullable=True)
     current_progress = Column(Text, nullable=True)
     next_week_plan = Column(Text, nullable=True)
+    project_logo_url = Column(String, nullable=True) # New Field for project image
     updated_at = Column(String, default=datetime.utcnow().isoformat)
 
 class Comment(Base):
@@ -74,13 +76,21 @@ def list_project_codes():
 def upsert_project(data: dict):
     session = SessionLocal()
     try:
+        # Check if project exists by its *new* project code (handle case where code itself was changed)
         project = session.query(Project).filter(Project.project_code == data['project_code']).first()
+        
+        # If project exists, check if we need to update a different row (only possible if key was changed)
+        # However, since we are identifying the project via the code *in the form*, we only use the code.
+        
         if not project:
+            # New Project
             project = Project(**data)
             session.add(project)
         else:
+            # Update Existing Project
             for key, value in data.items():
-                setattr(project, key, value)
+                if key != 'id': # Don't update the primary key
+                    setattr(project, key, value)
             project.updated_at = datetime.utcnow().isoformat()
         session.commit()
     except Exception as e:
