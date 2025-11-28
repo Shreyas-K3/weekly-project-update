@@ -82,7 +82,7 @@ def app():
             label="Days Spent", 
             value=project.days_spent, 
             max_value=project.days_spent, # Max value equals current value, making meter full (100%)
-            color="#FF0000" # Red
+            color="#FFFF00" # Yellow
         )
         st.markdown(meter_html, unsafe_allow_html=True)
 
@@ -113,11 +113,11 @@ def app():
 
     # --- Text Content with Roadmap Icon ---
     
-    # FIX: Use st.markdown with a level 3 heading style (###) instead of st.subheader
-    st.markdown(f"### {roadmap_svg(size='32')} Current Progress", unsafe_allow_html=True)
+    # FIX APPLIED HERE: Using <h4> tag instead of Markdown ### to correctly render the SVG icon.
+    st.markdown(f"<h4>{roadmap_svg(size='32')} Current Progress</h4>", unsafe_allow_html=True)
     st.info(project.current_progress or "No updates yet.")
 
-    st.markdown(f"### {roadmap_svg(size='32')} Next Week Plan", unsafe_allow_html=True)
+    st.markdown(f"<h4>{roadmap_svg(size='32')} Next Week Plan</h4>", unsafe_allow_html=True)
     st.info(project.next_week_plan or "No updates yet.")
 
     st.markdown("---")
