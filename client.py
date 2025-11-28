@@ -9,7 +9,7 @@ ALLOWED_NAMES = data.get("allowed_names", [])
 
 # Page config
 st.set_page_config(
-    page_title=f"{data['project_name']} - Status Update",
+    page_title=f"{data.get('project_name', 'Project')} - Status Update",
     page_icon="🚀",
     layout="wide"
 )
@@ -20,87 +20,21 @@ if 'authenticated' not in st.session_state:
 if 'user_name' not in st.session_state:
     st.session_state.user_name = ""
 
-# Custom CSS for enhanced styling
+# Custom CSS (Kept same as your original)
 st.markdown("""
     <style>
-    .main {
-        padding: 2rem;
-    }
-    .login-container {
-        max-width: 500px;
-        margin: 5rem auto;
-        padding: 3rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    }
-    .login-header {
-        text-align: center;
-        color: white;
-        margin-bottom: 2rem;
-    }
-    .stAlert {
-        padding: 1rem;
-        border-radius: 10px;
-    }
-    .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        color: white;
-        text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .progress-text {
-        font-size: 3rem;
-        font-weight: bold;
-        margin: 0;
-    }
-    .section-header {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin-top: 2rem;
-    }
-    .link-button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 10px;
-        text-decoration: none;
-        display: inline-block;
-        margin: 0.5rem;
-        transition: transform 0.2s;
-    }
-    .link-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-    .info-box {
-        background: #f0f2f6;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid #667eea;
-        margin: 1rem 0;
-    }
-    .timeline-item {
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 3px solid #667eea;
-        padding-left: 1.5rem;
-    }
-    .welcome-banner {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 10px;
-        margin-bottom: 2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+    .main { padding: 2rem; }
+    .login-container { max-width: 500px; margin: 5rem auto; padding: 3rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .login-header { text-align: center; color: white; margin-bottom: 2rem; }
+    .stAlert { padding: 1rem; border-radius: 10px; }
+    .metric-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 15px; color: white; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .progress-text { font-size: 3rem; font-weight: bold; margin: 0; }
+    .section-header { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem; font-weight: bold; margin-top: 2rem; }
+    .link-button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.75rem 1.5rem; border-radius: 10px; text-decoration: none; display: inline-block; margin: 0.5rem; transition: transform 0.2s; }
+    .link-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+    .info-box { background: #f0f2f6; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #667eea; margin: 1rem 0; }
+    .timeline-item { padding: 1rem; margin: 0.5rem 0; border-left: 3px solid #667eea; padding-left: 1.5rem; }
+    .welcome-banner { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem 2rem; border-radius: 10px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -118,7 +52,7 @@ if not st.session_state.authenticated:
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown("### 👤 Authentication Required (Pre-approved Only)")
+        st.markdown("### 👤 Authentication Required")
         
         name = st.text_input("Full Name", placeholder="Enter your full name", key="name_input")
         project_code = st.text_input("Project Code", placeholder="Enter project access code", type="password", key="code_input")
@@ -142,11 +76,10 @@ if not st.session_state.authenticated:
                 else:
                     st.session_state.authenticated = True
                     st.session_state.user_name = name_clean
-                    st.success(f"✅ Welcome, {name_clean}!")
                     st.rerun()
         
         st.markdown("<br>", unsafe_allow_html=True)
-        st.info("💡 Access is restricted to pre-approved names and a valid project code configured by the admin.")
+        st.info("💡 Access is restricted to pre-approved names and a valid project code.")
 
 # Main Dashboard (shown after authentication)
 else:
@@ -156,7 +89,7 @@ else:
             <div class="welcome-banner">
                 <div>
                     <h2 style="margin:0;">👋 Welcome, {st.session_state.user_name}</h2>
-                    <p style="margin:0; opacity:0.9;">{data['project_name']} Dashboard</p>
+                    <p style="margin:0; opacity:0.9;">{data.get('project_name', 'Project')} Dashboard</p>
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -169,7 +102,7 @@ else:
     
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.title(f"🚀 {data['project_name']}")
+        st.title(f"🚀 {data.get('project_name', 'Atlas Copco')}")
         st.subheader("Weekly Status Update")
     with col2:
         st.metric("Week", f"{datetime.now().strftime('%W')}", "Current")
@@ -178,12 +111,13 @@ else:
 
     col1, col2, col3 = st.columns(3)
 
+    # Note: Using .get() ensures the app doesn't crash if a key is missing from JSON
     with col1:
         st.markdown(f"""
             <div class="metric-card">
                 <p style="margin:0; font-size:1.2rem;">Project Completion</p>
-                <p class="progress-text">{int(data['project_completion'])}%</p>
-                <p style="margin:0;">✅ {data['project_status_label']}</p>
+                <p class="progress-text">{int(data.get('project_completion', 0))}%</p>
+                <p style="margin:0;">✅ {data.get('project_status_label', 'N/A')}</p>
             </div>
         """, unsafe_allow_html=True)
 
@@ -191,8 +125,8 @@ else:
         st.markdown(f"""
             <div class="metric-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                 <p style="margin:0; font-size:1.2rem;">Pending RFIs</p>
-                <p class="progress-text">{int(data['pending_rfis'])}</p>
-                <p style="margin:0;">⚠️ {data['rfis_label']}</p>
+                <p class="progress-text">{int(data.get('pending_rfis', 0))}</p>
+                <p style="margin:0;">⚠️ {data.get('rfis_label', 'N/A')}</p>
             </div>
         """, unsafe_allow_html=True)
 
@@ -200,7 +134,7 @@ else:
         st.markdown(f"""
             <div class="metric-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                 <p style="margin:0; font-size:1.2rem;">Timeline</p>
-                <p class="progress-text">{int(data['timeline_days'])}</p>
+                <p class="progress-text">{int(data.get('timeline_days', 0))}</p>
                 <p style="margin:0;">📅 Days Plan</p>
             </div>
         """, unsafe_allow_html=True)
@@ -212,19 +146,19 @@ else:
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"""
-            <a href="{data['viewer_link']}" target="_blank" class="link-button">
+            <a href="{data.get('viewer_link', '#')}" target="_blank" class="link-button">
                 📊 Open Viewer Link
             </a>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-            <a href="{data['rfi_sheet_link']}" target="_blank" class="link-button">
+            <a href="{data.get('rfi_sheet_link', '#')}" target="_blank" class="link-button">
                 ❓ RFI Response Sheet
             </a>
         """, unsafe_allow_html=True)
 
     st.markdown('<p class="section-header">📝 Important Notes</p>', unsafe_allow_html=True)
-    st.info(data["notes_markdown"])
+    st.info(data.get("notes_markdown", "No notes for this week."))
 
     st.markdown('<p class="section-header">📈 Current Progress Breakdown</p>', unsafe_allow_html=True)
 
@@ -232,23 +166,27 @@ else:
 
     with progress_col1:
         st.markdown("### Completed / Main Models")
+        
+        phe = int(data.get('phe_progress', 0))
+        st.success(f"**PHE Model** ✅ {phe}%")
+        st.progress(phe / 100.0)
 
-        st.success(f"**PHE Model** ✅ {int(data['phe_progress'])}%")
-        st.progress(float(data["phe_progress"]) / 100.0)
-
-        st.success(f"**ELEC Model** ✅ {int(data['elec_progress'])}%")
-        st.progress(float(data["elec_progress"]) / 100.0)
+        elec = int(data.get('elec_progress', 0))
+        st.success(f"**ELEC Model** ✅ {elec}%")
+        st.progress(elec / 100.0)
 
         st.markdown("<small>🔧 Minor clashes resolved (screenshots attached)</small>", unsafe_allow_html=True)
 
     with progress_col2:
         st.markdown("### In Progress Models")
 
-        st.warning(f"**FF Model** 🔄 {int(data['ff_progress'])}% Complete")
-        st.progress(float(data["ff_progress"]) / 100.0)
+        ff = int(data.get('ff_progress', 0))
+        st.warning(f"**FF Model** 🔄 {ff}% Complete")
+        st.progress(ff / 100.0)
 
-        st.warning(f"**MECH Model** 🔄 {int(data['mech_progress'])}% Complete")
-        st.progress(float(data["mech_progress"]) / 100.0)
+        mech = int(data.get('mech_progress', 0))
+        st.warning(f"**MECH Model** 🔄 {mech}% Complete")
+        st.progress(mech / 100.0)
 
     st.markdown('<p class="section-header">🗓 Next Steps - 4-Day Plan</p>', unsafe_allow_html=True)
 
@@ -257,12 +195,12 @@ else:
     with timeline_col2:
         st.markdown(f"""
             <div class="timeline-item">
-                <strong>Days 1-2:</strong> {data['days_1_2']}<br>
-                <small style="color: #666;">{data['days_1_2_sub']}</small>
+                <strong>Days 1-2:</strong> {data.get('days_1_2', '')}<br>
+                <small style="color: #666;">{data.get('days_1_2_sub', '')}</small>
             </div>
             <div class="timeline-item">
-                <strong>Days 3-4:</strong> {data['days_3_4']}<br>
-                <small style="color: #666;">{data['days_3_4_sub']}</small>
+                <strong>Days 3-4:</strong> {data.get('days_3_4', '')}<br>
+                <small style="color: #666;">{data.get('days_3_4_sub', '')}</small>
             </div>
         """, unsafe_allow_html=True)
 
@@ -275,7 +213,7 @@ else:
     """, unsafe_allow_html=True)
 
     with st.expander("📎 View Full Email Content"):
-        st.markdown(data["email_body"])
+        st.markdown(data.get("email_body", "No email content."))
 
     if st.button("📥 Export Status Report", type="primary"):
         st.balloons()
