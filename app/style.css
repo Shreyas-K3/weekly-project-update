@@ -8,60 +8,140 @@
 
 /* Global Basics */
 body {
-    background-color: #000000;
-    color: #FFFFFF;
     font-family: 'AvantGarde', sans-serif;
 }
 
 .stApp {
-    background-color: #000000;
+    background-color: #000000; /* Black Background */
+    color: #FFFFFF; /* White Text */
+    font-family: 'AvantGarde', sans-serif !important;
 }
 
-/* Headings */
-h1, h2, h3, h4, h5, h6 {
+/* Streamlit Container Styling - Ensures all main content uses the dark theme */
+header, footer, .stToolbar {
+    background-color: #000000 !important;
+}
+
+h1, h2, h3, h4 {
     font-family: 'AvantGarde', sans-serif !important;
     color: #FFFFFF !important;
 }
 
-/* Brand Colors */
-/* Red Accents */
+/* --- Re-styled Card Containers --- */
+
+/* Base card style applied to all custom sections */
+.stAlert, .stInfo, .stSuccess, div[data-testid^="stBlock"] {
+    background-color: #111111; /* Dark Grey/Black for depth */
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(255, 0, 0, 0.1); /* Subtle red glow */
+    border: 1px solid #333333;
+}
+
+/* Metric Cards (Prominent Cards) */
+div[data-testid="stMetric"] > div {
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+}
+div[data-testid="stMetric"]:hover > div {
+    box-shadow: 0 6px 15px rgba(255, 0, 0, 0.2);
+}
+
+div[data-testid="stMetricLabel"] {
+    color: #cccccc !important;
+    font-size: 1.1em;
+}
+
+div[data-testid="stMetricValue"] {
+    color: #FFFFFF !important;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+/* --- Progress and Days Spent Meters --- */
+
+.meter-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.circular-meter {
+    /* Variables passed from Python: --p (percentage), --c (color) */
+    --size: 200px;
+    --border-width: 15px;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background: 
+        radial-gradient(closest-side, #1a1a1a 80%, transparent 81% 100%),
+        conic-gradient(var(--c) calc(var(--p) * 1%), #333333 0);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'AvantGarde', sans-serif;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+}
+
+.circular-meter .meter-value {
+    font-size: 3.5em; /* Large value */
+    font-weight: bold;
+    color: var(--c); /* Value takes meter color */
+    line-height: 1;
+}
+
+.circular-meter .meter-label {
+    font-size: 0.9em;
+    color: #ccc;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+/* --- Brand Buttons --- */
 .stButton > button {
     background-color: #FF0000 !important;
     color: #FFFFFF !important;
     border: none;
     border-radius: 8px;
     font-weight: bold;
+    padding: 10px 20px; /* Base padding */
+    font-size: 1.1em;
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 0 #CC0000;
 }
+
 .stButton > button:hover {
     background-color: #CC0000 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #990000;
 }
 
-/* Cards / Metrics */
-div[data-testid="stMetric"] {
-    background-color: #1a1a1a;
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #333;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+/* Large Action Buttons (Link Buttons) */
+.stLinkButton > a {
+    background-color: #1a1a1a !important; /* Dark background */
+    color: #FF0000 !important; /* Red text/icon */
+    border: 2px solid #FF0000;
+    border-radius: 12px;
+    padding: 15px 30px;
+    font-size: 1.4em; /* Bigger font */
+    text-align: center;
+    display: block; /* Make link fill container */
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
 }
 
-div[data-testid="stMetricLabel"] {
-    color: #cccccc !important;
-}
-
-div[data-testid="stMetricValue"] {
+.stLinkButton > a:hover {
+    background-color: #FF0000 !important;
     color: #FFFFFF !important;
-}
-
-/* Progress Bar - Green */
-.stProgress > div > div > div > div {
-    background-color: #00C853 !important;
-}
-
-/* Links */
-a {
-    color: #FF0000 !important;
-    text-decoration: none;
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
 }
 
 /* Alert Note */
@@ -72,4 +152,5 @@ a {
     margin-bottom: 20px;
     border-radius: 5px;
     font-weight: bold;
+    color: #FF9999;
 }
