@@ -1,7 +1,9 @@
 import streamlit as st
 import time
+import json
 from app.db import get_project_by_code, add_comment
-from app.utils import load_css, create_circular_meter, roadmap_svg
+# Assuming these utilities are available from app/utils.py (as provided in the previous step)
+from app.utils import load_css, create_circular_meter, roadmap_svg, kshitij_logo_svg
 
 def app():
     load_css("app/style.css")
@@ -23,11 +25,12 @@ def app():
 
             if submit_button:
                 if code_input and name_input:
-                    project = get_project_by_code(code_input)
-                    if project:
+                    project_data = get_project_by_code(code_input)
+                    if project_data:
                         st.session_state.logged_in = True
                         st.session_state.client_name = name_input
                         st.session_state.project_code = code_input
+                        st.session_state.project_data = project_data # Store data
                         st.rerun()
                     else:
                         st.error("Invalid Project Code.")
@@ -36,89 +39,134 @@ def app():
         return
 
     # --- Dashboard ---
-    # Refresh data on load
-    project = get_project_by_code(st.session_state.project_code)
-    
-    # Session cleanup if project code changed by admin
+    # Retrieve project data from session state (or refresh if needed, for simplicity we use state here)
+    project = st.session_state.project_data
+    if project is None:
+        project = get_project_by_code(st.session_state.project_code)
+        st.session_state.project_data = project # Update state
+
     if not project:
         st.error("Project not found. The project code may have been updated or deleted.")
         if st.button("Back to Login"):
             st.session_state.logged_in = False
+            st.session_state.project_data = None
             st.rerun()
         return
 
-    # Header and Logo
-    col_img, col_text = st.columns([1, 4])
-    with col_img:
-        if project.project_logo_url:
-            st.image(project.project_logo_url, width=100, use_column_width="auto", output_format="PNG")
+    # --- Header and Logo (Centered Alignment) ---
+    col_client_logo, col_center_text, col_kshitij_logo = st.columns([1, 4, 1])
+
+    with col_client_logo:
+        # Client Logo (from Base64 in DB)
+        if project.get('client_logo_base64'):
+            # Use HTML to prevent Streamlit from wrapping the image in an undesired container size
+            st.markdown(f'<img src="{project["client_logo_base64"]}" style="width:100px; height:auto; display:block; margin: 0 auto;"/>', unsafe_allow_html=True)
         else:
-            # Fallback icon/placeholder
-            st.markdown(f'<div style="height:100px; width:100px; background:#111; border: 2px solid #FF0000; border-radius:10px; display:flex; justify-content:center; align-items:center; font-size: 2em;">🏗️</div>', unsafe_allow_html=True)
-    with col_text:
-        st.title(project.project_name)
-        st.header(project.title)
+            # Fallback placeholder
+            st.markdown(f'<div style="width:100px; height:100px; background:#111; border: 2px solid #333; border-radius:10px; display:flex; justify-content:center; align-items:center; font-size: 2em; margin: 0 auto;">🏢</div>', unsafe_allow_html=True)
+            
+    with col_center_text:
+        # Center aligned titles using markdown HTML
+        st.markdown(f'<h1 style="text-align:center; color:#FF0000; margin-bottom: 0px;">{project["project_name"]}</h1>', unsafe_allow_html=True)
+        st.markdown(f'<h2 style="text-align:center; color:#FFFFFF; margin-top: 0px;">{project["title"]}</h2>', unsafe_allow_html=True)
+
+    with col_kshitij_logo:
+        # Kshitij Logo (from Base64 in DB or SVG fallback)
+        if project.get('kshitij_logo_base64'):
+            st.markdown(f'<img src="{project["kshitij_logo_base64"]}" style="width:100px; height:auto; display:block; margin: 0 auto;"/>', unsafe_allow_html=True)
+        else:
+            st.markdown(kshitij_logo_svg(size='100'), unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # --- Metrics Row (Meters & RFI) ---
-    st.subheader("Key Project Health Indicators")
-    col_prog, col_days, col_rfi = st.columns([1.5, 1.5, 1])
+    # --- Metrics Row (Progress Gauge, Days Spent, RFI) ---
+    st.subheader("Project Health Summary")
+    
+    col_prog, col_metrics = st.columns([1.5, 1])
 
-    # 1. Progress Meter (Green)
+    # 1. Overall Progress Gauge (Large and Center Aligned)
     with col_prog:
         meter_html = create_circular_meter(
             label="Overall Progress", 
-            value=project.project_progress, 
+            value=project["project_progress"], 
             max_value=100, 
-            color="#00C853" # Bright Green
+            color="#00C853", # Bright Green
+            size="250px"
         )
-        st.markdown(meter_html, unsafe_allow_html=True)
-
-    # 2. Days Spent Meter (Red)
-    with col_days:
-        # Note: If days_spent is 0, max_value in utils.py will handle the safety check.
-        meter_html = create_circular_meter(
-            label="Days Spent", 
-            value=project.days_spent, 
-            max_value=project.days_spent, # Max value equals current value, making meter full (100%)
-            color="#FFFF00" # Yellow
-        )
-        st.markdown(meter_html, unsafe_allow_html=True)
-
-    # 3. Pending RFI Metric (Card)
-    with col_rfi:
-        st.markdown("<br><br><br>", unsafe_allow_html=True) # Vertical alignment spacer
-        st.metric("Pending RFI", project.pending_rfi)
+        # Ensure the meter is visually centered within its column
+        st.markdown(f'<div style="display:flex; justify-content:center;">{meter_html}</div>', unsafe_allow_html=True)
+    
+    # 2. Days Spent & Pending RFI (Standard Metrics, grouped)
+    with col_metrics:
+        # Spacing to visually align with the center of the large gauge
+        st.markdown("<br><br><br><br>", unsafe_allow_html=True) 
+        st.metric("Days Spent", project["days_spent"])
+        st.metric("Pending RFI", project["pending_rfi"])
 
     st.markdown("<br>", unsafe_allow_html=True) 
 
-    # --- Action Buttons (Larger and Styled) ---
-    st.subheader("Quick Access Links")
-    l1, l2 = st.columns(2)
-    with l1:
-        if project.model_review_link:
-            st.link_button("✨ Review Model", project.model_review_link, help="Open external model viewer link", use_container_width=True)
-    with l2:
-        if project.rfi_sheet_link:
-            st.link_button("📋 RFI Sheet", project.rfi_sheet_link, help="Open external RFI tracking sheet", use_container_width=True)
+    # --- Action Buttons (Transparent Circular) ---
+    st.subheader("Key Interactions")
+    
+    # Check if links exist before creating columns
+    links_exist = project.get("model_review_link") or project.get("rfi_sheet_link")
+    if links_exist:
+        # Distribute buttons centrally
+        l1, l2, _ = st.columns([1, 1, 2]) 
 
-    # Alert Note
-    if project.alert_note:
+        with l1:
+            if project.get("model_review_link"):
+                st.markdown(f"""
+                <div class="transparent-circle-link">
+                    <a href="{project['model_review_link']}" target="_blank">
+                        <div class="icon">💻</div> 
+                        Review Model
+                    </a>
+                </div>
+                """, unsafe_allow_html=True)
+        with l2:
+            if project.get("rfi_sheet_link"):
+                st.markdown(f"""
+                <div class="transparent-circle-link">
+                    <a href="{project['rfi_sheet_link']}" target="_blank">
+                        <div class="icon">🔗</div> 
+                        RFI Sheet
+                    </a>
+                </div>
+                """, unsafe_allow_html=True)
+
+    # Alert Note (Emoji only, no red box)
+    if project.get("alert_note"):
         st.markdown(f"""
         <div class="alert-box">
-            🔔 {project.alert_note}
+            🚨 {project["alert_note"]}
         </div>
         """, unsafe_allow_html=True)
 
-    # --- Text Content with Roadmap Icon ---
-    
-    # FIX APPLIED HERE: Using <h4> tag instead of Markdown ### to correctly render the SVG icon.
+    # --- Narrative Content ---
     st.markdown(f"<h4>{roadmap_svg(size='32')} Current Progress</h4>", unsafe_allow_html=True)
-    st.info(project.current_progress or "No updates yet.")
+    st.info(project["current_progress"] or "No updates yet.")
 
     st.markdown(f"<h4>{roadmap_svg(size='32')} Next Week Plan</h4>", unsafe_allow_html=True)
-    st.info(project.next_week_plan or "No updates yet.")
+    st.info(project["next_week_plan"] or "No updates yet.")
+
+    # --- Image Carousel ---
+    carousel_images = project.get("carousel_images_json", [])
+    if carousel_images and len(carousel_images) > 0:
+        st.markdown("---")
+        st.subheader("Project Visuals")
+        
+        # Manually create the horizontal scrolling container using custom CSS
+        image_html = '<div class="image-carousel">'
+        for img_data in carousel_images:
+            image_html += f"""
+            <div class="carousel-image-wrapper">
+                <img src="{img_data}" alt="Project Visual"/>
+            </div>
+            """
+        image_html += '</div>'
+        st.markdown(image_html, unsafe_allow_html=True)
+
 
     st.markdown("---")
     st.write("Feedback and inputs are welcome. For any clarifications or additional details, feel free to reach out.")
@@ -134,7 +182,7 @@ def app():
             if st.button("Submit Feedback", key="submit_comment_btn"):
                 if comment_text.strip():
                     add_comment(
-                        project.project_code,
+                        project["project_code"],
                         st.session_state.client_name,
                         comment_text
                     )
